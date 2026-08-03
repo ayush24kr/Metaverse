@@ -34,7 +34,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -46,6 +46,6 @@ app.include_router(activity_router)
 app.include_router(stats_router)
 app.include_router(admin_router)
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
     return {"success": True, "message": "API is healthy", "data": {}, "meta": {}}
