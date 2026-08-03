@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install Node dependencies
+      run: npm install
+
+    - name: Install Python dependencies
+      run: pip install -r apps/api/requirements.txt
+
+    - name: Validate Prisma Schema
+      run: npx prisma validate --schema=./database/prisma/schema.prisma
+
+    - name: Lint and Format
+      run: npm run format
+
+    # Add pytest and other test runners here in future milestones

@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator pyclient {
+  provider                    = "prisma-client-py"
+  interface                   = "asyncio"
+  enable_experimental_decimal = true
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id
+  username  String?
+  avatar    String?
+  bio       String?
+  timezone  String?
+  theme     String   @default("system")
+  language  String   @default("en")
+  clerkId   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  media     UserMedia[]
+  stats     UserStats?
+  activity  Activity[]
+}
+
+model Media {
+  id             String   @id @default(uuid())
+  source         String   // e.g., "tmdb", "anilist"
+  externalId     String
+  type           String   // e.g., "movie", "tv", "anime"
+  title          String
+  titleEnglish   String?
+  titleRomaji    String?
+  titleNative    String?
+  description    String?
+  posterPath     String?
+  bannerPath     String?
+  coverPath      String?
+  releaseYear    Int?
+  duration       Int?     // minutes
+  episodes       Int?
+  chapters       Int?
+  volumes        Int?
+  status         String?
+  popularity     Float?
+  rating         Float?   // average rating from external source
+  slug           String?  @unique
+  searchKeywords String?
+  reviewCount    Int      @default(0)
+  lastUpdated    DateTime @default(now())
+  
+  users          UserMedia[]
+  activity       Activity[]
+
+  @@unique([source, externalId])
+}
+
+model UserMedia {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  media        Media    @relation(fields: [mediaId], references: [id])
+  mediaId      String
+  status       WatchStatus
+  progress     Int      @default(0)
+  rating       Decimal? @db.Decimal(3, 1) // 0.0 to 10.0
+  favorite     Boolean  @default(false)
+  private      Boolean  @default(false)
+  startedAt    DateTime?
+  completedAt  DateTime?
+  rewatchCount Int      @default(0)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, mediaId])
+}
+
+model UserStats {
+  id            String   @id @default(uuid())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String   @unique
+  completed     Int      @default(0)
+  watching      Int      @default(0)
+  hours         Float    @default(0)
+  episodes      Int      @default(0)
+  chapters      Int      @default(0)
+  averageRating Float    @default(0)
+}
+
+model Activity {
+  id        String       @id @default(uuid())
+  user      User         @relation(fields: [userId], references: [id])
+  userId    String
+  type      ActivityType
+  media     Media?       @relation(fields: [mediaId], references: [id])
+  mediaId   String?
+  details   String?      // JSON string for additional data
+  createdAt DateTime     @default(now())
+}
+
+enum WatchStatus {
+  WATCHING
+  COMPLETED
+  DROPPED
+  ON_HOLD
+  PLAN_TO_WATCH
+  REWATCHING
+}
+
+enum ActivityType {
+  STARTED
+  COMPLETED
+  DROPPED
+  RATED
+  ADDED_TO_WATCHLIST
+}
