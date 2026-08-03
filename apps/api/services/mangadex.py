@@ -2,12 +2,13 @@ import httpx
 from typing import List, Dict, Any
 
 MANGADEX_BASE_URL = "https://api.mangadex.org"
+HEADERS = {"User-Agent": "MediaVerse/1.0"}
 
 class MangaDexService:
     @staticmethod
     async def search(query: str) -> List[Dict[str, Any]]:
         try:
-            async with httpx.AsyncClient(timeout=8.0) as client:
+            async with httpx.AsyncClient(timeout=8.0, headers=HEADERS) as client:
                 res = await client.get(
                     f"{MANGADEX_BASE_URL}/manga",
                     params={"title": query, "limit": 10, "includes[]": ["cover_art"]}
