@@ -7,3 +7,7 @@ upstash-redis
 prisma
 httpx
 python-dotenv
+PyJWT
+bcrypt
+pytest
+pytest-asyncio

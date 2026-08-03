@@ -1,23 +1,19 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { getWatchlist, WatchlistItem } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { getDetailedStats, DetailedStats } from "@/lib/api";
 
 export default function ProfilePage() {
-  const [items, setItems] = useState<WatchlistItem[]>([]);
+  const [stats, setStats] = useState<DetailedStats | null>(null);
 
   useEffect(() => {
-    getWatchlist().then(setItems);
+    getDetailedStats().then(setStats);
   }, []);
 
-  const completed = useMemo(() => items.filter((i) => i.status === "COMPLETED"), [items]);
-
-  const avgRating = useMemo(() => {
-    const rated = items.filter((i) => i.rating && i.rating > 0);
-    if (rated.length === 0) return "N/A";
-    const sum = rated.reduce((acc, curr) => acc + (curr.rating || 0), 0);
-    return (sum / rated.length).toFixed(1);
-  }, [items]);
+  const totalTracked = stats?.totalTracked || 0;
+  const completed = stats?.completedCount || 0;
+  const completionRate = stats?.completionRate ? `${stats.completionRate}%` : "0%";
+  const avgRating = stats?.averageRating ? `${stats.averageRating} ★` : "N/A";
 
   return (
     <div className="p-6 md:p-10 space-y-8 max-w-5xl mx-auto">
@@ -39,21 +35,19 @@ export default function ProfilePage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-[#18181B] border border-[#27272A] p-5 rounded-2xl">
           <p className="text-xs font-semibold text-[#A1A1AA] uppercase">Total Tracked</p>
-          <p className="text-2xl font-bold text-white mt-1">{items.length}</p>
+          <p className="text-2xl font-bold text-white mt-1">{totalTracked}</p>
         </div>
         <div className="bg-[#18181B] border border-[#27272A] p-5 rounded-2xl">
           <p className="text-xs font-semibold text-[#A1A1AA] uppercase">Completed</p>
-          <p className="text-2xl font-bold text-emerald-400 mt-1">{completed.length}</p>
+          <p className="text-2xl font-bold text-emerald-400 mt-1">{completed}</p>
         </div>
         <div className="bg-[#18181B] border border-[#27272A] p-5 rounded-2xl">
           <p className="text-xs font-semibold text-[#A1A1AA] uppercase">Completion Rate</p>
-          <p className="text-2xl font-bold text-amber-400 mt-1">
-            {items.length > 0 ? Math.round((completed.length / items.length) * 100) : 0}%
-          </p>
+          <p className="text-2xl font-bold text-amber-400 mt-1">{completionRate}</p>
         </div>
         <div className="bg-[#18181B] border border-[#27272A] p-5 rounded-2xl">
           <p className="text-xs font-semibold text-[#A1A1AA] uppercase">Avg Rating</p>
-          <p className="text-2xl font-bold text-violet-400 mt-1">{avgRating} ★</p>
+          <p className="text-2xl font-bold text-violet-400 mt-1">{avgRating}</p>
         </div>
       </div>
     </div>

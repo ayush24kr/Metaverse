@@ -1,43 +1,44 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { getWatchlist, WatchlistItem } from "@/lib/api";
+import { getDetailedStats, DetailedStats } from "@/lib/api";
 import { Sparkles, Award, Zap, Flame } from "lucide-react";
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 
 export default function EntertainmentDNAPage() {
-  const [items, setItems] = useState<WatchlistItem[]>([]);
+  const [stats, setStats] = useState<DetailedStats | null>(null);
 
   useEffect(() => {
-    getWatchlist().then(setItems);
+    getDetailedStats().then(setStats);
   }, []);
 
-  const total = items.length;
-  const completed = useMemo(() => items.filter((i) => i.status === "COMPLETED").length, [items]);
-  const completionRate = total > 0 ? ((completed / total) * 100).toFixed(1) : "0.0";
-
-  const totalHours = useMemo(() => {
-    const watchingCount = items.filter((i) => i.status === "WATCHING").length;
-    return Math.round(completed * 2.5 + watchingCount * 1.2);
-  }, [completed, items]);
+  const total = stats?.totalTracked || 0;
+  const completed = stats?.completedCount || 0;
+  const completionRate = stats?.completionRate ? stats.completionRate.toFixed(1) : "0.0";
+  const totalHours = stats?.totalHours || 0;
 
   const radarData = useMemo(() => {
-    const counts: Record<string, number> = { MOVIE: 0, TV: 0, ANIME: 0, MANGA: 0 };
-    items.forEach((i) => {
-      const typeKey = (i.mediaType || "movie").toUpperCase();
-      counts[typeKey] = (counts[typeKey] || 0) + 1;
-    });
+    if (!stats || !stats.typeDistribution) {
+      return [
+        { genre: "Movies & Cinema", score: 0 },
+        { genre: "TV Series & Shows", score: 0 },
+        { genre: "Anime & Animation", score: 0 },
+        { genre: "Manga & Comics", score: 0 },
+        { genre: "Completion Score", score: 0 },
+      ];
+    }
 
+    const counts = stats.typeDistribution;
     const maxCount = Math.max(1, ...Object.values(counts));
 
     return [
-      { genre: "Movies & Cinema", score: Math.round(((counts.MOVIE || 0) / maxCount) * 100) || 40 },
-      { genre: "TV Series & Shows", score: Math.round(((counts.TV || 0) / maxCount) * 100) || 50 },
-      { genre: "Anime & Animation", score: Math.round(((counts.ANIME || 0) / maxCount) * 100) || 75 },
-      { genre: "Manga & Comics", score: Math.round(((counts.MANGA || 0) / maxCount) * 100) || 60 },
-      { genre: "High Completion", score: Math.round(parseFloat(completionRate)) || 80 },
+      { genre: "Movies & Cinema", score: Math.round(((counts["MOVIE"] || counts["movie"] || 0) / maxCount) * 100) },
+      { genre: "TV Series & Shows", score: Math.round(((counts["TV"] || counts["tv"] || 0) / maxCount) * 100) },
+      { genre: "Anime & Animation", score: Math.round(((counts["ANIME"] || counts["anime"] || 0) / maxCount) * 100) },
+      { genre: "Manga & Comics", score: Math.round(((counts["MANGA"] || counts["manga"] || 0) / maxCount) * 100) },
+      { genre: "Completion Score", score: Math.round(stats.completionRate) },
     ];
-  }, [items, completionRate]);
+  }, [stats]);
 
   return (
     <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto">
@@ -53,7 +54,7 @@ export default function EntertainmentDNAPage() {
             Personal Entertainment DNA
           </h1>
           <p className="text-violet-200/80 text-sm md:text-base leading-relaxed">
-            Deep algorithmic analysis of your watching history, genre preferences, rating distributions, and media archetype.
+            Deep algorithmic analysis computed from your database watch history and completion metrics.
           </p>
         </div>
       </div>
@@ -123,7 +124,7 @@ export default function EntertainmentDNAPage() {
             <span>Preference Radar</span>
           </h2>
           <p className="text-xs text-[#A1A1AA] mt-1">
-            Affinity spectrum computed live from your watchlist entries.
+            Affinity spectrum computed live from API detailed stats.
           </p>
         </div>
 

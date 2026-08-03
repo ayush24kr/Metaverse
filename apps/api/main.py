@@ -18,6 +18,7 @@ from routes.watchlist import router as watchlist_router
 from routes.activity import router as activity_router
 from routes.stats import router as stats_router
 from routes.admin import router as admin_router
+from routes.auth import router as auth_router
 from core.redis import redis_client
 from core.db import connect_db, disconnect_db
 from workers.stats_worker import EventWorkerService
@@ -78,6 +79,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         }
     )
 
+app.include_router(auth_router)
 app.include_router(media_router)
 app.include_router(watchlist_router)
 app.include_router(activity_router)

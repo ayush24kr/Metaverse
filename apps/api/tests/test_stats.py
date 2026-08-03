@@ -1,20 +1,20 @@
-import pytest
 from fastapi.testclient import TestClient
-import sys
-import os
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from main import app
-
-client = TestClient(app)
-
-def test_get_stats():
+def test_get_stats(client: TestClient):
     response = client.get("/stats")
-    assert response.status_code in [200, 500]
+    assert response.status_code == 200
     data = response.json()
-    assert "success" in data
+    assert data["success"] is True
 
-def test_admin_health():
+def test_get_detailed_stats(client: TestClient):
+    response = client.get("/stats/detailed")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert "statusDistribution" in data["data"]
+    assert "completionRate" in data["data"]
+
+def test_admin_health(client: TestClient):
     response = client.get("/admin/health")
     assert response.status_code == 200
     data = response.json()

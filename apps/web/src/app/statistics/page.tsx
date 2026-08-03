@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { getWatchlist, WatchlistItem } from "@/lib/api";
+import { getDetailedStats, DetailedStats } from "@/lib/api";
 import { BarChart3, PieChart as PieIcon, TrendingUp } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -18,48 +18,45 @@ import {
 } from "recharts";
 
 export default function StatisticsPage() {
-  const [items, setItems] = useState<WatchlistItem[]>([]);
+  const [stats, setStats] = useState<DetailedStats | null>(null);
 
   useEffect(() => {
-    getWatchlist().then(setItems);
+    getDetailedStats().then(setStats);
   }, []);
 
   const typeData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    items.forEach((item) => {
-      const typeKey = (item.mediaType || "other").toUpperCase();
-      counts[typeKey] = (counts[typeKey] || 0) + 1;
-    });
-
-    return Object.entries(counts).map(([type, count]) => ({
+    if (!stats || !stats.typeDistribution) return [];
+    return Object.entries(stats.typeDistribution).map(([type, count]) => ({
       genre: type,
       count,
     }));
-  }, [items]);
+  }, [stats]);
 
   const statusData = useMemo(() => {
-    const completed = items.filter((i) => i.status === "COMPLETED").length;
-    const watching = items.filter((i) => i.status === "WATCHING").length;
-    const planToWatch = items.filter((i) => i.status === "PLAN_TO_WATCH").length;
-    const dropped = items.filter((i) => i.status === "DROPPED").length;
-
-    return [
-      { name: "Completed", value: completed, color: "#22C55E" },
-      { name: "Watching", value: watching, color: "#3B82F6" },
-      { name: "Plan to Watch", value: planToWatch, color: "#F59E0B" },
-      { name: "Dropped", value: dropped, color: "#EF4444" },
-    ].filter((s) => s.value > 0);
-  }, [items]);
+    if (!stats || !stats.statusDistribution) return [];
+    const colorMap: Record<string, string> = {
+      COMPLETED: "#22C55E",
+      WATCHING: "#3B82F6",
+      PLAN_TO_WATCH: "#F59E0B",
+      DROPPED: "#EF4444",
+      ON_HOLD: "#A855F7",
+    };
+    return Object.entries(stats.statusDistribution).map(([name, value]) => ({
+      name,
+      value,
+      color: colorMap[name] || "#6B7280",
+    }));
+  }, [stats]);
 
   const watchTimeData = useMemo(() => {
-    // Generate calculated progress data based on items added
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"];
-    const baseHours = Math.max(10, items.length * 4);
-    return months.map((month, idx) => ({
-      month,
-      hours: Math.round((baseHours / (months.length - idx)) + (idx * 5)),
+    if (!stats || !stats.monthlyActivity || stats.monthlyActivity.length === 0) {
+      return [{ month: "Current", hours: stats?.totalHours || 0 }];
+    }
+    return stats.monthlyActivity.map((item) => ({
+      month: item.month,
+      hours: item.events * 2,
     }));
-  }, [items]);
+  }, [stats]);
 
   return (
     <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto">
@@ -70,7 +67,7 @@ export default function StatisticsPage() {
           <span>Analytics & Statistics</span>
         </h1>
         <p className="text-[#A1A1AA] text-sm mt-1">
-          Detailed metrics computed from your live watchlist and media progress.
+          Detailed metrics computed live from your API database.
         </p>
       </div>
 
@@ -81,7 +78,7 @@ export default function StatisticsPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-white flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-[#3B82F6]" />
-              <span>Monthly Watch Time (Hours)</span>
+              <span>Activity Volume</span>
             </h2>
           </div>
           <div className="h-64 w-full">
@@ -110,7 +107,7 @@ export default function StatisticsPage() {
           </h2>
           <div className="h-64 w-full flex items-center justify-center">
             {statusData.length === 0 ? (
-              <p className="text-xs text-[#A1A1AA]">No status data available yet.</p>
+              <p className="text-xs text-[#A1A1AA]">No status data recorded in database.</p>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>

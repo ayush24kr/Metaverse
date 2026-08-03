@@ -14,20 +14,21 @@ datasource db {
 }
 
 model User {
-  id        String   @id
-  username  String?
-  avatar    String?
-  bio       String?
-  timezone  String?
-  theme     String   @default("system")
-  language  String   @default("en")
-  clerkId   String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id
+  username     String?  @unique
+  passwordHash String?
+  avatar       String?
+  bio          String?
+  timezone     String?
+  theme        String   @default("system")
+  language     String   @default("en")
+  clerkId      String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   
-  media     UserMedia[]
-  stats     UserStats?
-  activity  Activity[]
+  media        UserMedia[]
+  stats        UserStats?
+  activity     Activity[]
 }
 
 model Media {

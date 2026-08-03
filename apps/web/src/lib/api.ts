@@ -48,6 +48,19 @@ export interface UserStats {
   streakDays: number;
 }
 
+export interface DetailedStats {
+  statusDistribution: Record<string, number>;
+  typeDistribution: Record<string, number>;
+  ratingDistribution: Record<string, number>;
+  monthlyActivity: Array<{ month: string; events: number }>;
+  completionRate: number;
+  averageRating: number;
+  totalHours: number;
+  totalTracked: number;
+  completedCount: number;
+  streakDays: number;
+}
+
 export async function searchMedia(query: string, type?: string): Promise<MediaItem[]> {
   if (!query) return [];
   const params = new URLSearchParams({ q: query });
@@ -92,6 +105,17 @@ export async function getUserStats(): Promise<UserStats | null> {
     return json.success ? json.data : null;
   } catch (error) {
     console.error("Failed to fetch user stats", error);
+    return null;
+  }
+}
+
+export async function getDetailedStats(): Promise<DetailedStats | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/stats/detailed`);
+    const json = await res.json();
+    return json.success ? json.data : null;
+  } catch (error) {
+    console.error("Failed to fetch detailed stats", error);
     return null;
   }
 }
