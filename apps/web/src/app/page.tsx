@@ -1,18 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { getWatchlist, WatchlistItem } from "@/lib/api";
+import { StatCard } from "@/components/StatCard";
 import {
   Play,
   CheckCircle2,
   Bookmark,
-  XCircle,
   Clock,
   Sparkles,
-  TrendingUp,
   ArrowRight,
-  Star,
   Activity as ActivityIcon,
 } from "lucide-react";
 
@@ -27,15 +25,23 @@ export default function Dashboard() {
     });
   }, []);
 
-  const watching = items.filter((i) => i.status === "WATCHING");
-  const completed = items.filter((i) => i.status === "COMPLETED");
-  const dropped = items.filter((i) => i.status === "DROPPED");
-  const planToWatch = items.filter((i) => i.status === "PLAN_TO_WATCH");
+  const watching = useMemo(
+    () => items.filter((i) => i.status === "WATCHING"),
+    [items]
+  );
+  const completed = useMemo(
+    () => items.filter((i) => i.status === "COMPLETED"),
+    [items]
+  );
+  const planToWatch = useMemo(
+    () => items.filter((i) => i.status === "PLAN_TO_WATCH"),
+    [items]
+  );
 
-  const totalHours = completed.length * 2.5 + watching.length * 1.2;
-  const avgRating = items.filter(i => i.rating).length > 0
-    ? (items.filter(i => i.rating).reduce((acc, curr) => acc + (curr.rating || 0), 0) / items.filter(i => i.rating).length).toFixed(1)
-    : "8.5";
+  const totalHours = useMemo(
+    () => completed.length * 2.5 + watching.length * 1.2,
+    [completed.length, watching.length]
+  );
 
   return (
     <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto">
@@ -74,45 +80,38 @@ export default function Dashboard() {
 
       {/* Overview Stat Cards */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-[#18181B] border border-[#27272A] p-5 rounded-2xl flex items-center justify-between shadow-sm hover:border-[#3B82F6]/50 transition-colors">
-          <div>
-            <p className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider">Watching</p>
-            <p className="text-2xl md:text-3xl font-bold text-[#3B82F6] mt-1">{watching.length}</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-[#3B82F6]/10 border border-[#3B82F6]/20 flex items-center justify-center">
-            <Play className="w-5 h-5 text-[#3B82F6]" />
-          </div>
-        </div>
-
-        <div className="bg-[#18181B] border border-[#27272A] p-5 rounded-2xl flex items-center justify-between shadow-sm hover:border-emerald-500/50 transition-colors">
-          <div>
-            <p className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider">Completed</p>
-            <p className="text-2xl md:text-3xl font-bold text-emerald-400 mt-1">{completed.length}</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-          </div>
-        </div>
-
-        <div className="bg-[#18181B] border border-[#27272A] p-5 rounded-2xl flex items-center justify-between shadow-sm hover:border-amber-500/50 transition-colors">
-          <div>
-            <p className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider">Plan to Watch</p>
-            <p className="text-2xl md:text-3xl font-bold text-amber-400 mt-1">{planToWatch.length}</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-            <Bookmark className="w-5 h-5 text-amber-400" />
-          </div>
-        </div>
-
-        <div className="bg-[#18181B] border border-[#27272A] p-5 rounded-2xl flex items-center justify-between shadow-sm hover:border-rose-500/50 transition-colors">
-          <div>
-            <p className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider">Hours Tracked</p>
-            <p className="text-2xl md:text-3xl font-bold text-violet-400 mt-1">{totalHours.toFixed(0)}h</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-            <Clock className="w-5 h-5 text-violet-400" />
-          </div>
-        </div>
+        <StatCard
+          label="Watching"
+          value={watching.length}
+          icon={<Play className="w-5 h-5 text-[#3B82F6]" />}
+          accentColorClass="text-[#3B82F6]"
+          hoverBorderClass="hover:border-[#3B82F6]/50"
+          bgIconClass="bg-[#3B82F6]/10 border-[#3B82F6]/20"
+        />
+        <StatCard
+          label="Completed"
+          value={completed.length}
+          icon={<CheckCircle2 className="w-5 h-5 text-emerald-400" />}
+          accentColorClass="text-emerald-400"
+          hoverBorderClass="hover:border-emerald-500/50"
+          bgIconClass="bg-emerald-500/10 border-emerald-500/20"
+        />
+        <StatCard
+          label="Plan to Watch"
+          value={planToWatch.length}
+          icon={<Bookmark className="w-5 h-5 text-amber-400" />}
+          accentColorClass="text-amber-400"
+          hoverBorderClass="hover:border-amber-500/50"
+          bgIconClass="bg-amber-500/10 border-amber-500/20"
+        />
+        <StatCard
+          label="Hours Tracked"
+          value={`${totalHours.toFixed(0)}h`}
+          icon={<Clock className="w-5 h-5 text-violet-400" />}
+          accentColorClass="text-violet-400"
+          hoverBorderClass="hover:border-rose-500/50"
+          bgIconClass="bg-violet-500/10 border-violet-500/20"
+        />
       </section>
 
       {/* Continue Watching Section */}
@@ -197,7 +196,7 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-[#18181B] border border-[#27272A] rounded-2xl p-6 space-y-4">
-          {items.slice(0, 4).map((item, idx) => (
+          {items.slice(0, 4).map((item) => (
             <div
               key={item.id}
               className="flex items-center justify-between border-b border-[#27272A]/60 pb-4 last:border-0 last:pb-0"

@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from typing import List
+import logging
 from core.response import UnifiedResponse
 from core.auth import verify_user
 from core.db import db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/activity", tags=["Activity"])
 
@@ -28,7 +31,7 @@ async def get_activities(user: dict = Depends(verify_user)):
                 for a in activities
             ]
             return UnifiedResponse(success=True, message="Activity log retrieved", data=data)
+        return UnifiedResponse(success=True, message="Database not connected", data=[])
     except Exception as e:
-        print("Activity fetch error:", e)
-
-    return UnifiedResponse(success=True, message="Activity log retrieved", data=[])
+        logger.error(f"Activity fetch error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch activity log")

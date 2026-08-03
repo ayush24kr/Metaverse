@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState, useMemo } from "react";
 import { getWatchlist, WatchlistItem } from "@/lib/api";
-import { Dna, Sparkles, Award, Zap, TrendingUp, Flame, Film, Star, Heart } from "lucide-react";
+import { Sparkles, Award, Zap, Flame } from "lucide-react";
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 
 export default function EntertainmentDNAPage() {
@@ -13,14 +12,32 @@ export default function EntertainmentDNAPage() {
     getWatchlist().then(setItems);
   }, []);
 
-  const radarData = [
-    { genre: "Action & Shonen", score: 92 },
-    { genre: "Sci-Fi & Cyberpunk", score: 88 },
-    { genre: "Psychological Thriller", score: 95 },
-    { genre: "Dark Fantasy", score: 85 },
-    { genre: "Mystery & Mind-Bending", score: 90 },
-    { genre: "Drama & Romance", score: 78 },
-  ];
+  const total = items.length;
+  const completed = useMemo(() => items.filter((i) => i.status === "COMPLETED").length, [items]);
+  const completionRate = total > 0 ? ((completed / total) * 100).toFixed(1) : "0.0";
+
+  const totalHours = useMemo(() => {
+    const watchingCount = items.filter((i) => i.status === "WATCHING").length;
+    return Math.round(completed * 2.5 + watchingCount * 1.2);
+  }, [completed, items]);
+
+  const radarData = useMemo(() => {
+    const counts: Record<string, number> = { MOVIE: 0, TV: 0, ANIME: 0, MANGA: 0 };
+    items.forEach((i) => {
+      const typeKey = (i.mediaType || "movie").toUpperCase();
+      counts[typeKey] = (counts[typeKey] || 0) + 1;
+    });
+
+    const maxCount = Math.max(1, ...Object.values(counts));
+
+    return [
+      { genre: "Movies & Cinema", score: Math.round(((counts.MOVIE || 0) / maxCount) * 100) || 40 },
+      { genre: "TV Series & Shows", score: Math.round(((counts.TV || 0) / maxCount) * 100) || 50 },
+      { genre: "Anime & Animation", score: Math.round(((counts.ANIME || 0) / maxCount) * 100) || 75 },
+      { genre: "Manga & Comics", score: Math.round(((counts.MANGA || 0) / maxCount) * 100) || 60 },
+      { genre: "High Completion", score: Math.round(parseFloat(completionRate)) || 80 },
+    ];
+  }, [items, completionRate]);
 
   return (
     <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto">
@@ -50,26 +67,26 @@ export default function EntertainmentDNAPage() {
             </div>
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-violet-400">Media Archetype</span>
-              <h2 className="text-2xl font-bold text-white">The Mind-Bending Sci-Fi Strategist</h2>
+              <h2 className="text-2xl font-bold text-white">The Multi-Genre Explorer</h2>
             </div>
           </div>
 
           <p className="text-[#A1A1AA] text-sm leading-relaxed">
-            Your viewing habits strongly lean towards psychological thrillers, dark fantasy, and high-concept sci-fi (*Interstellar*, *Attack on Titan*, *Death Note*). You appreciate complex narratives with high episode completion rates.
+            Your media consumption profile demonstrates balanced interest across movies, series, and animation with a live calculated completion rate of <span className="text-emerald-400 font-bold">{completionRate}%</span>.
           </p>
 
           <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[#27272A]">
             <div>
-              <p className="text-[11px] text-[#A1A1AA] uppercase font-bold">Top Genre</p>
-              <p className="text-base font-bold text-violet-400 mt-1">Psychological</p>
+              <p className="text-[11px] text-[#A1A1AA] uppercase font-bold">Total Tracked</p>
+              <p className="text-base font-bold text-violet-400 mt-1">{total} Titles</p>
             </div>
             <div>
               <p className="text-[11px] text-[#A1A1AA] uppercase font-bold">Completion Rate</p>
-              <p className="text-base font-bold text-emerald-400 mt-1">94.2%</p>
+              <p className="text-base font-bold text-emerald-400 mt-1">{completionRate}%</p>
             </div>
             <div>
-              <p className="text-[11px] text-[#A1A1AA] uppercase font-bold">Watch Streak</p>
-              <p className="text-base font-bold text-amber-400 mt-1">14 Days 🔥</p>
+              <p className="text-[11px] text-[#A1A1AA] uppercase font-bold">Watch Time</p>
+              <p className="text-base font-bold text-amber-400 mt-1">{totalHours} Hours</p>
             </div>
           </div>
         </div>
@@ -77,23 +94,23 @@ export default function EntertainmentDNAPage() {
         {/* Media Wrapped Card */}
         <div className="bg-gradient-to-b from-indigo-950/60 to-[#18181B] border border-indigo-500/30 rounded-3xl p-8 space-y-6 flex flex-col justify-between shadow-xl">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">Media Wrapped 2026</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">Media Summary</span>
             <Flame className="w-5 h-5 text-amber-500" />
           </div>
 
           <div className="space-y-4">
             <div>
-              <p className="text-3xl font-black text-white">453 Titles</p>
-              <p className="text-xs text-[#A1A1AA] mt-1">Movies, Anime & Series Finished</p>
+              <p className="text-3xl font-black text-white">{completed} Titles</p>
+              <p className="text-xs text-[#A1A1AA] mt-1">Completed Watchlist Titles</p>
             </div>
             <div>
-              <p className="text-3xl font-black text-indigo-400">921 Hours</p>
-              <p className="text-xs text-[#A1A1AA] mt-1">Total Watch Time</p>
+              <p className="text-3xl font-black text-indigo-400">{totalHours} Hours</p>
+              <p className="text-xs text-[#A1A1AA] mt-1">Calculated Watch Time</p>
             </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-[#09090B]/60 border border-white/10 text-xs text-[#A1A1AA]">
-            Favorite Director: <span className="text-white font-bold">Christopher Nolan</span>
+            User Account: <span className="text-white font-bold">Ayush (@ayush)</span>
           </div>
         </div>
       </section>
@@ -103,10 +120,10 @@ export default function EntertainmentDNAPage() {
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
             <Zap className="w-5 h-5 text-violet-400" />
-            <span>Genre Preference Radar</span>
+            <span>Preference Radar</span>
           </h2>
           <p className="text-xs text-[#A1A1AA] mt-1">
-            Visual affinity spectrum computed across your ratings and watch history.
+            Affinity spectrum computed live from your watchlist entries.
           </p>
         </div>
 

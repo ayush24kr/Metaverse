@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { searchMedia, addToWatchlist, MediaItem } from "@/lib/api";
-import { Search, Film, Tv, Sparkles, Star, Plus, Check, Loader2 } from "lucide-react";
+import { MediaCard } from "@/components/MediaCard";
+import { Search, Loader2 } from "lucide-react";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
@@ -126,66 +126,12 @@ export default function SearchPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
           {results.map((media, idx) => (
-            <div
+            <MediaCard
               key={`${media.source}-${media.type}-${media.id}-${idx}`}
-              className="group bg-[#18181B] border border-[#27272A] rounded-2xl overflow-hidden flex flex-col justify-between hover:border-[#3B82F6]/50 transition-all duration-200 shadow-sm hover:shadow-xl"
-            >
-              <div className="relative overflow-hidden aspect-[2/3] bg-[#27272A]">
-                {media.posterPath ? (
-                  <img
-                    src={media.posterPath}
-                    alt={media.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xs text-[#A1A1AA]">
-                    No Poster
-                  </div>
-                )}
-                <div className="absolute top-3 left-3 bg-[#09090B]/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 text-[10px] font-bold uppercase text-[#3B82F6]">
-                  {media.type}
-                </div>
-                {media.rating && (
-                  <div className="absolute top-3 right-3 bg-[#09090B]/80 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 text-[10px] font-bold text-amber-400 flex items-center gap-1">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                    <span>{media.rating.toFixed(1)}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-semibold text-sm text-[#FAFAFA] line-clamp-2 group-hover:text-[#3B82F6] transition-colors">
-                    {media.title}
-                  </h3>
-                  <p className="text-xs text-[#A1A1AA] mt-1">
-                    {media.releaseYear ? `${media.releaseYear}` : "N/A"} • {media.source.toUpperCase()}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleAdd(media)}
-                  disabled={addedIds.has(media.id)}
-                  className={`w-full mt-4 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all duration-150 ${
-                    addedIds.has(media.id)
-                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                      : "bg-[#27272A] hover:bg-[#3B82F6] text-[#FAFAFA] hover:text-white"
-                  }`}
-                >
-                  {addedIds.has(media.id) ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Added to List</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add to Watchlist</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+              media={media}
+              isAdded={addedIds.has(media.id)}
+              onAdd={handleAdd}
+            />
           ))}
         </div>
       )}
