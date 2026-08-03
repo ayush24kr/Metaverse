@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Show, UserButton, SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import {
   LayoutDashboard,
   Search,
@@ -16,6 +17,7 @@ import {
   X,
   ChevronRight,
   Sparkles,
+  LogIn
 } from "lucide-react";
 
 interface AppShellProps {
@@ -25,6 +27,7 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useUser();
 
   const mainNav = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -165,17 +168,50 @@ export default function AppShell({ children }: AppShellProps) {
           </div>
         </div>
 
-        {/* User Footer Profile Card */}
+        {/* User Footer Profile Card / Clerk Authentication */}
         <div className="p-4 border-t border-[#27272A]/60">
-          <div className="flex items-center space-x-3 p-2 rounded-xl bg-[#1F1F23] border border-[#27272A]">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center font-bold text-xs text-white">
-              A
+          <Show when="signed-in">
+            <div className="flex items-center justify-between p-2 rounded-xl bg-[#1F1F23] border border-[#27272A]">
+              <div className="flex items-center space-x-3 min-w-0">
+                <UserButton />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[#FAFAFA] truncate">
+                    {user?.firstName || user?.username || "Ayush"}
+                  </p>
+                  <p className="text-[10px] text-[#A1A1AA] truncate">Pro Member</p>
+                </div>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-[#FAFAFA] truncate">Ayush</p>
-              <p className="text-[10px] text-[#A1A1AA] truncate">Pro Member</p>
+          </Show>
+
+          <Show when="signed-out">
+            <div className="flex items-center justify-between p-2 rounded-xl bg-[#1F1F23] border border-[#27272A]">
+              <div className="flex items-center space-x-3 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center font-bold text-xs text-white">
+                  {user?.firstName?.[0] || "A"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[#FAFAFA] truncate">
+                    Guest User
+                  </p>
+                  <p className="text-[10px] text-[#A1A1AA] truncate">Sign in to sync</p>
+                </div>
+              </div>
+              <div className="flex gap-1">
+                <SignInButton mode="modal">
+                  <button className="px-2.5 py-1 text-xs bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg flex items-center gap-1 transition-colors">
+                    <LogIn className="w-3 h-3" />
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="px-2 py-1 text-xs bg-[#27272A] hover:bg-[#3F3F46] text-white font-medium rounded-lg transition-colors">
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </div>
             </div>
-          </div>
+          </Show>
         </div>
       </aside>
 
@@ -189,12 +225,25 @@ export default function AppShell({ children }: AppShellProps) {
             MediaVerse
           </span>
         </Link>
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 text-[#A1A1AA] hover:text-white"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+
+        <div className="flex items-center space-x-2">
+          <Show when="signed-in">
+            <UserButton />
+          </Show>
+          <Show when="signed-out">
+            <SignInButton mode="modal">
+              <button className="px-3 py-1.5 text-xs bg-blue-600 text-white font-medium rounded-lg">
+                Sign In
+              </button>
+            </SignInButton>
+          </Show>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 text-[#A1A1AA] hover:text-[#FAFAFA]"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </header>
 
       {/* Mobile Menu Dropdown */}

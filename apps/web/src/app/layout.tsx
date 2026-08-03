@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
 
@@ -18,7 +19,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-[#09090B] text-[#FAFAFA] antialiased selection:bg-[#3B82F6]/30 selection:text-[#3B82F6]`}>
-        <AppShell>{children}</AppShell>
+        <ClerkProvider>
+          <AppShell>{children}</AppShell>
+        </ClerkProvider>
       </body>
     </html>
   );
