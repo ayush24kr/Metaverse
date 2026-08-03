@@ -1,6 +1,5 @@
 # MediaVerse 🎬📚
 
-[![CI](https://github.com/mediaverse/mediaverse/actions/workflows/ci.yml/badge.svg)](https://github.com/mediaverse/mediaverse/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104-009688.svg)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.0-black.svg)](https://nextjs.org/)
