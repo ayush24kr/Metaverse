@@ -3,6 +3,7 @@ uvicorn[standard]
 pydantic
 pydantic-settings
 redis
+upstash-redis
 prisma
 httpx
 python-dotenv
